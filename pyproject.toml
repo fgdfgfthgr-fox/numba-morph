@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["numba_morph*"]  # Use underscore here
+exclude = ["tests*"]
+
+[project]
+name = "numba-morph"
+version = "0.1.0"
+authors = [
+  { name="Yuyao Huang", email="yuyaoh6@gmail.com" },
+]
+description = "Some image morphology operations optimized with Numba"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+dependencies = [
+    "numpy",
+    "numba",
+    "scipy",
+    "scikit-image"
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/fgdfgfthgr-fox/numba-morph"
+Issues = "https://github.com/fgdfgfthgr-fox/numba-morph/issues"
