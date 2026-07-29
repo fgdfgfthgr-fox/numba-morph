@@ -33,8 +33,7 @@ Faster and uses less memory than their scikit-image or SciPy counterpart. Suppor
 \* Under development, currently only works with integer dtype.
 
 ## Installation
-~~You can install `numba-morph` directly from pypi using pip:~~
-(Still working on it! Give me a few days!)
+You can install `numba-morph` directly from pypi using pip:
 
 ```
 pip install numba-morph
