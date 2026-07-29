@@ -1,10 +1,11 @@
 # numba-morph
 
-[![Tests](https://github.com/fgdfgfthgr-fox/numba-morph/actions/workflows/python-app.yml/badge.svg)](https://github.com/fgdfgfthgr-fox/numba-morph/actions/workflows/python-app.yml/badge.svg))
+[![Tests](https://github.com/fgdfgfthgr-fox/numba-morph/actions/workflows/python-app.yml/badge.svg)](https://github.com/fgdfgfthgr-fox/numba-morph/actions/workflows/python-app.yml/badge.svg)
 
 A set of Numba-optimised morphological operations.
 
-Faster and uses less memory than their scikit-image or SciPy counterpart. Supports batched operations on both 2D and 3D.
+For very large arrays, is faster and uses less memory than their scikit-image or SciPy counterpart. 
+Supports batched operations on both 2D and 3D.
 
 
 ## Features
@@ -81,6 +82,7 @@ Reconstruction (int16):
 | 8x2048x2048 (2D, batched) | **2.0700s**                | 18.5615s                    | **0.271GB**              | 0.571GB                   |
 
 Chamfer Distance Transform (in=uint8, out=int32):
+
 Note numba-morph don't have time advantage here. It's optimised for memory use. 
 Another advantage of numba-morph not showing here is able to specify output directly in other dtype. e.g. smaller uint16
 
