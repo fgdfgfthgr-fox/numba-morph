@@ -3,7 +3,7 @@ import numpy as np
 from .reconstruction import reconstruction
 
 def compare_greater_equal_safe(a, b, h, block_size=4096):
-    # returns True where a >= b + h, avoiding overflow/underflow
+    """returns True where a >= b + h, avoiding overflow/underflow"""
     if not np.issubdtype(a.dtype, np.unsignedinteger):
         return a - b >= h
 
