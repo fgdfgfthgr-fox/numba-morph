@@ -24,14 +24,12 @@ Supports batched operations on both 2D and 3D.
 * morphological_gradient
 * h_minima, h_maxima
 * morphological_laplace
-* local_minima, local_maxima *
+* local_minima, local_maxima
 * opening, closing
 * reconstruction
 * white_tophat, black_tophat
 * watershed
 * welford_mean_std_w_mask
-
-\* Under development, currently only works with integer dtype.
 
 ## Installation
 You can install `numba-morph` directly from pypi using pip:
