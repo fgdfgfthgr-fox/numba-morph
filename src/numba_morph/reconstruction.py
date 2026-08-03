@@ -66,7 +66,7 @@ def reconstruction(mask, seed=None, dynamic=None, method='dilation',
                 "Intensity of seed image must be less than that "
                 "of the mask image for reconstruction by dilation."
             )
-        result = seed.copy()
+        result = seed
     else:
         result = safe_add(mask, dynamic)
     edge_mode_codes = {'reflect': 0, 'constant': 1, 'nearest': 2, 'mirror': 3, 'wrap': 4}
