@@ -1,10 +1,12 @@
+import warnings
+
 import numpy as np
 import os
 
 from ._chamfer import _chamfer, _generate_offsets
 from .utils import choose_algorithm
 
-def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4), speed='auto'):
+def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4), speed=False):
     """
     Perform Chamfer Distance Transform with parallelisation over the largest spatial axis.
     Support only 2D or 3D operation. But the input array can have arbitrary number of leading dimensions.
@@ -46,6 +48,13 @@ def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4)
         raise ValueError(f"Input must have at least {working_dim} dimensions given the weights.")
     if speed == 'auto':
         speed = choose_algorithm(input, working_dim, 2097152)
+    if speed == True:
+        warnings.warn(
+            'There are issues with the current fast algorithm for cdt, and they are disabled. '
+            'I will probably fix them in the next version.',
+            stacklevel=2,
+        )
+        speed = False
     causal, anti_causal = _generate_offsets(weights)
     input = input.astype(dtype, copy=False)
     max_val = np.iinfo(dtype).max

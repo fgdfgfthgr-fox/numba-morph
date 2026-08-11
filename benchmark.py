@@ -6,23 +6,23 @@ import numba_morph
 import skimage.morphology as morph
 import scipy.ndimage as ndimage
 
-SHAPE = (8, 4096, 4096)
+SHAPE = (4096, 4096)
 REPEATS = 5
-OP_My = numba_morph.distance_transform_cdt
-OP_Control = ndimage.distance_transform_cdt
+OP_My = numba_morph.local_minima
+OP_Control = morph.local_minima
 footprint = ndimage.generate_binary_structure(2, 2)
 
 def op_my_run():
-    input = np.random.randint(0, 2, SHAPE, dtype=np.uint8)
-    result = OP_My(input, weights=(1,1), dtype=np.int32)
+    input = np.random.random(SHAPE)
+    result = OP_My(input, footprint)
     return result
 
 def op_control_run():
-    input = np.random.randint(0, 2, SHAPE, dtype=np.uint8)
-    #result = np.zeros_like(input)
+    input = np.random.random(SHAPE)
+    result = np.zeros_like(input)
     #for i in range(result.shape[0]):
-    #    result[i] = OP_Control(seed[i], input[i], footprint=footprint)
-    result = OP_Control(input, indices=(1,2))
+    #    result[i] = OP_Control(input[i], footprint=footprint)
+    result = OP_Control(input, footprint=footprint)
     return result
 
 if __name__ == '__main__':

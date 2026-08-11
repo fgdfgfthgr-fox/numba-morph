@@ -385,12 +385,8 @@ def _permute_for_chunk(input, causal, anti_causal, working_dim, chunk_dim, batch
     return np.transpose(input, perm), new_causal, new_anti_causal, perm, np.argsort(perm)
 
 
-# ---------- Refactored _chamfer ----------
 def _chamfer(input, max_val, num_bands, causal, anti_causal, working_dim,
              chunk, size_of_largest_dim, chunk_dim, batch):
-    """
-    Compute Chamfer distance transform.
-    """
     if chunk:
         # Move the chunked axis to the front (after batch if present)
         input, causal, anti_causal, perm, inv_perm = _permute_for_chunk(
