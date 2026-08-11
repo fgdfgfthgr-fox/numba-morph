@@ -6,7 +6,7 @@ import os
 from ._chamfer import _chamfer, _generate_offsets
 from .utils import choose_algorithm
 
-def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4), speed=False):
+def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4), output=None, speed=False):
     """
     Perform Chamfer Distance Transform with parallelisation over the largest spatial axis.
     Support only 2D or 3D operation. But the input array can have arbitrary number of leading dimensions.
@@ -30,6 +30,8 @@ def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4)
         Weight for face and edge (and maybe corner) neighbours. Default is default (3,4) (Borgefors).
          (1,1) to replicate chessboard and (1,2) to replicate taxicab.
          For 3D, it's (3,4,5), (1,1,1) or (1,2,3).
+    output : ndarray, optional
+        Array of the same shape as input, into which the output is placed. By default, a copy of the input array is created.
     speed : str or bool
         If True, will use a (usually) faster, multi-threaded algorithm.
         If False, will use a slower, single-threaded algorithm.
@@ -56,17 +58,18 @@ def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4)
         )
         speed = False
     causal, anti_causal = _generate_offsets(weights)
-    input = input.astype(dtype, copy=False)
+    if output is None:
+        output = input.astype(dtype, copy=True)
     max_val = np.iinfo(dtype).max
-    input[input>0] = max_val
+    output[output>0] = max_val
     batch = False
 
     if working_dim == 2:
-        H, W = input.shape[-2], input.shape[-1]
+        H, W = output.shape[-2], output.shape[-1]
         size_of_largest_dim = H if H >= W else W
         chunk_dim = -2 if H >= W else -1
     else:
-        D, H, W = input.shape[-3], input.shape[-2], input.shape[-1]
+        D, H, W = output.shape[-3], output.shape[-2], output.shape[-1]
         dims = {'D': (D, -3), 'H': (H, -2), 'X': (W, -1)}
         largest_name, (size_of_largest_dim, chunk_dim) = max(dims.items(), key=lambda kv: kv[1][0])
 
@@ -74,18 +77,18 @@ def distance_transform_cdt(input, dtype=np.uint16, num_bands=None, weights=(3,4)
         num_bands = max(1, os.cpu_count() - 1)
         num_bands = min(num_bands, size_of_largest_dim//2)
 
-    original_shape = input.shape
-    if input.ndim > working_dim:
+    original_shape = output.shape
+    if output.ndim > working_dim:
         batch = True
         if working_dim == 2:
             leading_dims = original_shape[:-2]
             N = int(np.prod(leading_dims))
-            input = input.reshape((N, H, W))
+            output = output.reshape((N, H, W))
         else:
             leading_dims = original_shape[:-3]
             N = int(np.prod(leading_dims))
-            input = input.reshape((N, D, H, W))
+            output = output.reshape((N, D, H, W))
 
-    input = _chamfer(input, max_val, num_bands, causal, anti_causal, working_dim, speed, size_of_largest_dim, chunk_dim, batch)
+    output = _chamfer(output, max_val, num_bands, causal, anti_causal, working_dim, speed, size_of_largest_dim, chunk_dim, batch)
 
-    return input.reshape(original_shape) if input.ndim > working_dim else input
+    return output.reshape(original_shape) if output.ndim > working_dim else output

@@ -11,3 +11,5 @@ Disable the "fast" algorithm for distance transform for now (since there are iss
 
 Add a shortcut to the core erosion and dilation algorithms (and therefore all the downstream functions) when the pixels 
 are already at their minimum or maximum value.
+
+Add "output" argument to cdt so the function can optionally do the ops in-place.
