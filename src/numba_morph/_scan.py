@@ -175,6 +175,7 @@ def _scan_2d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
     H, W = arr.shape
     n_offsets = offsets.shape[0]
     changed = 0
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for i in prange(H * W):
         h = i // W
@@ -182,6 +183,9 @@ def _scan_2d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
         if mask is not None and mask[h, w] == 0:
             continue
         val = arr[h, w]
+        if (val == min_val and erosion) or (val == max_val and not erosion):
+            out[h, w] = val
+            continue
         best = val
 
         for idx in range(n_offsets):
@@ -224,6 +228,7 @@ def _scan_2d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosi
     L, H, W = arr.shape
     n_offsets = offsets.shape[0]
     changed = 0
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for i in prange(L*H*W):
         l = i // (H * W)
@@ -232,6 +237,9 @@ def _scan_2d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosi
         if mask is not None and mask[l, h, w] == 0:
             continue
         val = arr[l, h, w]
+        if (val == min_val and erosion) or (val == max_val and not erosion):
+            out[l, h, w] = val
+            continue
         best = val
 
         for idx in range(n_offsets):
@@ -273,6 +281,7 @@ def _scan_3d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
     N = D * H * W
     n_offsets = offsets.shape[0]
     changed = 0
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
     for i in prange(N):
         d = i // (H * W)
         h = (i // W) % H
@@ -280,6 +289,9 @@ def _scan_3d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
         if mask is not None and mask[d, h, w] == 0:
             continue
         val = arr[d, h, w]
+        if (val == min_val and erosion) or (val == max_val and not erosion):
+            out[d, h, w] = val
+            continue
         best = val
 
         for idx in range(n_offsets):
@@ -324,6 +336,7 @@ def _scan_3d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosi
     N = L * D * H * W
     n_offsets = offsets.shape[0]
     changed = 0
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for i in prange(N):
         spatial_size = D * H * W
@@ -335,6 +348,9 @@ def _scan_3d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosi
         if mask is not None and mask[l, d, h, w] == 0:
             continue
         val = arr[l, d, h, w]
+        if (val == min_val and erosion) or (val == max_val and not erosion):
+            out[l, d, h, w] = val
+            continue
         best = val
 
         for idx in range(n_offsets):
@@ -388,12 +404,15 @@ def _scan_2d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
         w_range = range(W - 1, -1, -1)
 
     n_offsets = offsets.shape[0]
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for h in h_range:
         for w in w_range:
             if mask is not None and mask[h, w] == 0:
                 continue
             current = arr[h, w]
+            if (current == min_val and erosion) or (current == max_val and not erosion):
+                continue
             best = current
 
             for idx in range(n_offsets):
@@ -417,14 +436,13 @@ def _scan_2d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
                 else:
                     best = min(neighbor, best)
 
-            if bound is not None:
-                m = bound[h, w]
-                if erosion:
-                    if m > best:
-                        best = m
-                else:
-                    if m < best:
-                        best = m
+            m = bound[h, w]
+            if erosion:
+                if m > best:
+                    best = m
+            else:
+                if m < best:
+                    best = m
 
             if best != current:
                 arr[h, w] = best
@@ -449,6 +467,7 @@ def _scan_2d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
         w_range = range(W - 1, -1, -1)
     n_offsets = offsets.shape[0]
     changed_per_l = np.zeros(L, dtype=np.bool_)
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for l in prange(L):
         changed_l = False
@@ -457,6 +476,8 @@ def _scan_2d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
                 if mask is not None and mask[l, h, w] == 0:
                     continue
                 current = arr[l, h, w]
+                if (current == min_val and erosion) or (current == max_val and not erosion):
+                    continue
                 best = current
 
                 for idx in range(n_offsets):
@@ -480,14 +501,13 @@ def _scan_2d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
                     else:
                         best = min(neighbor, best)
 
-                if bound is not None:
-                    m = bound[l, h, w]
-                    if erosion:
-                        if m > best:
-                            best = m
-                    else:
-                        if m < best:
-                            best = m
+                m = bound[l, h, w]
+                if erosion:
+                    if m > best:
+                        best = m
+                else:
+                    if m < best:
+                        best = m
 
                 if best != current:
                     arr[l, h, w] = best
@@ -518,6 +538,7 @@ def _scan_3d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
         w_range = range(W - 1, -1, -1)
 
     n_offsets = offsets.shape[0]
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for d in d_range:
         for h in h_range:
@@ -525,6 +546,8 @@ def _scan_3d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
                 if mask is not None and mask[d, h, w] == 0:
                     continue
                 current = arr[d, h, w]
+                if (current == min_val and erosion) or (current == max_val and not erosion):
+                    continue
                 best = current
 
                 for idx in range(n_offsets):
@@ -551,14 +574,13 @@ def _scan_3d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
                     else:
                         best = min(neighbor, best)
 
-                if bound is not None:
-                    m = bound[d, h, w]
-                    if erosion:
-                        if m > best:
-                            best = m
-                    else:
-                        if m < best:
-                            best = m
+                m = bound[d, h, w]
+                if erosion:
+                    if m > best:
+                        best = m
+                else:
+                    if m < best:
+                        best = m
 
                 if best != current:
                     arr[d, h, w] = best
@@ -585,6 +607,7 @@ def _scan_3d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
         w_range = range(W - 1, -1, -1)
     n_offsets = offsets.shape[0]
     changed_per_l = np.zeros(L, dtype=np.bool_)
+    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for l in prange(L):
         changed_l = False
@@ -594,6 +617,8 @@ def _scan_3d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
                     if mask is not None and mask[l, d, h, w] == 0:
                         continue
                     current = arr[l, d, h, w]
+                    if (current == min_val and erosion) or (current == max_val and not erosion):
+                        continue
                     best = current
 
                     for idx in range(n_offsets):
@@ -620,14 +645,13 @@ def _scan_3d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
                         else:
                             best = min(neighbor, best)
 
-                    if bound is not None:
-                        m = bound[l, d, h, w]
-                        if erosion:
-                            if m > best:
-                                best = m
-                        else:
-                            if m < best:
-                                best = m
+                    m = bound[l, d, h, w]
+                    if erosion:
+                        if m > best:
+                            best = m
+                    else:
+                        if m < best:
+                            best = m
 
                     if best != current:
                         arr[l, d, h, w] = best
