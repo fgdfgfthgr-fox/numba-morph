@@ -170,12 +170,11 @@ def _wrap_handle_3d(nd, nh, nw, D, H, W):
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _scan_2d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
+def _scan_2d_filter(arr, out, mask, bound, min_val, max_val, offsets, mode_code, cval, erosion):
     """Approach erosion/dilation as a min/max filter."""
     H, W = arr.shape
     n_offsets = offsets.shape[0]
     changed = 0
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for i in prange(H * W):
         h = i // W
@@ -223,12 +222,11 @@ def _scan_2d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _scan_2d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosion):
+def _scan_2d_filter_batch(arr, out, mask, bound, min_val, max_val, offsets, mode_code, cval, erosion):
     """Approach erosion/dilation as a min/max filter. This one has a leading dimension."""
     L, H, W = arr.shape
     n_offsets = offsets.shape[0]
     changed = 0
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for i in prange(L*H*W):
         l = i // (H * W)
@@ -276,12 +274,11 @@ def _scan_2d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosi
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _scan_3d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
+def _scan_3d_filter(arr, out, mask, bound, min_val, max_val, offsets, mode_code, cval, erosion):
     D, H, W = arr.shape
     N = D * H * W
     n_offsets = offsets.shape[0]
     changed = 0
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
     for i in prange(N):
         d = i // (H * W)
         h = (i // W) % H
@@ -331,12 +328,11 @@ def _scan_3d_filter(arr, out, mask, bound, offsets, mode_code, cval, erosion):
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _scan_3d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosion):
+def _scan_3d_filter_batch(arr, out, mask, bound, min_val, max_val, offsets, mode_code, cval, erosion):
     L, D, H, W = arr.shape
     N = L * D * H * W
     n_offsets = offsets.shape[0]
     changed = 0
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for i in prange(N):
         spatial_size = D * H * W
@@ -389,7 +385,7 @@ def _scan_3d_filter_batch(arr, out, mask, bound, offsets, mode_code, cval, erosi
 
 
 @njit(cache=True)
-def _scan_2d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion):
+def _scan_2d_raster(arr, mask, bound, min_val, max_val, offsets, reverse, mode_code, cval, erosion):
     """
     Approach erosion/dilation using raster scan.
     Slower but memory efficient. Modifies arr in place.
@@ -404,7 +400,6 @@ def _scan_2d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
         w_range = range(W - 1, -1, -1)
 
     n_offsets = offsets.shape[0]
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for h in h_range:
         for w in w_range:
@@ -452,7 +447,7 @@ def _scan_2d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _scan_2d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, erosion):
+def _scan_2d_raster_batch(arr, mask, bound, min_val, max_val, offsets, reverse, mode_code, cval, erosion):
     """
     Raster scan for 3D arrays with a leading dimension (L, H, W).
     Parallelized over the leading dimension. Modifies arr in place.
@@ -467,7 +462,6 @@ def _scan_2d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
         w_range = range(W - 1, -1, -1)
     n_offsets = offsets.shape[0]
     changed_per_l = np.zeros(L, dtype=np.bool_)
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for l in prange(L):
         changed_l = False
@@ -521,7 +515,7 @@ def _scan_2d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
 
 
 @njit(cache=True)
-def _scan_3d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion):
+def _scan_3d_raster(arr, mask, bound, min_val, max_val, offsets, reverse, mode_code, cval, erosion):
     """
     Approach erosion/dilation using raster scan for 3D arrays.
     Slower but memory efficient. Modifies arr in place.
@@ -538,7 +532,6 @@ def _scan_3d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
         w_range = range(W - 1, -1, -1)
 
     n_offsets = offsets.shape[0]
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for d in d_range:
         for h in h_range:
@@ -590,7 +583,7 @@ def _scan_3d_raster(arr, mask, bound, offsets, reverse, mode_code, cval, erosion
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _scan_3d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, erosion):
+def _scan_3d_raster_batch(arr, mask, bound, min_val, max_val, offsets, reverse, mode_code, cval, erosion):
     """
     Raster scan for 4D arrays with a leading dimension (L, D, H, W).
     Parallelized over the leading dimension. Modifies arr in place.
@@ -607,7 +600,6 @@ def _scan_3d_raster_batch(arr, mask, bound, offsets, reverse, mode_code, cval, e
         w_range = range(W - 1, -1, -1)
     n_offsets = offsets.shape[0]
     changed_per_l = np.zeros(L, dtype=np.bool_)
-    min_val, max_val = np.finfo(arr.dtype) if np.issubdtype(arr.dtype, np.floating) else np.iinfo(arr.dtype)
 
     for l in prange(L):
         changed_l = False
@@ -671,7 +663,16 @@ def _scan_filter(arr, output, mask, bound, offsets, edge_mode_code, cval, erosio
         scan_function = _scan_2d_filter_batch if working_dim == 2 else _scan_3d_filter_batch
     else:
         scan_function = _scan_2d_filter if working_dim == 2 else _scan_3d_filter
-    changed = scan_function(arr, output, mask, bound, offsets, edge_mode_code, cval, erosion)
+    if np.issubdtype(arr.dtype, np.floating):
+        info = np.finfo(arr.dtype)
+        min_val, max_val = info.min, info.max
+    elif np.issubdtype(arr.dtype, np.integer):
+        info = np.iinfo(arr.dtype)
+        min_val, max_val = info.min, info.max
+    else:
+        min_val, max_val = 0, 1
+
+    changed = scan_function(arr, output, mask, bound, min_val, max_val, offsets, edge_mode_code, cval, erosion)
     return changed
 
 def _scan_raster(arr, mask, bound, offsets, edge_mode_code, cval, erosion, working_dim, batch):
@@ -685,10 +686,19 @@ def _scan_raster(arr, mask, bound, offsets, edge_mode_code, cval, erosion, worki
     else:
         scan_function = _scan_2d_raster if working_dim == 2 else _scan_3d_raster
 
+    if np.issubdtype(arr.dtype, np.floating):
+        info = np.finfo(arr.dtype)
+        min_val, max_val = info.min, info.max
+    elif np.issubdtype(arr.dtype, np.integer):
+        info = np.iinfo(arr.dtype)
+        min_val, max_val = info.min, info.max
+    else:
+        min_val, max_val = 0, 1
+
     forward_offsets, backward_offsets = _split_offsets(offsets)
     # Forward pass (raster order)
     changed_fwd = scan_function(
-        arr, mask, bound, forward_offsets, False,
+        arr, mask, bound, min_val, max_val, forward_offsets, False,
         edge_mode_code, cval, erosion)
 
     # Backward pass (reverse raster order)
