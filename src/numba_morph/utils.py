@@ -1,4 +1,5 @@
 import numba
+from numba import njit, prange
 import numpy as np
 
 def generate_sphere_structure(radius):
@@ -109,3 +110,9 @@ def safe_add(mask, dynamic):
         flat_result[start:end] = clipped.astype(mask.dtype)
 
     return result
+
+@njit(cache=True, parallel=True)
+def set_positive_to_val(arr, val):
+    for i in prange(arr.size):
+        if arr.flat[i] > 0:
+            arr.flat[i] = val

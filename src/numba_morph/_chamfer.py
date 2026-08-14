@@ -167,7 +167,7 @@ def _apply_pass_3d_batch(input, offsets,
     return True if changed > 0 else False
 
 
-@njit(parallel=True, fastmath=True, cache=True)
+'''@njit(parallel=True, fastmath=True, cache=True)
 def _chamfer_2d_chunk(input, max_val, num_bands, causal, anti_causal, size_of_largest_dim):
     H, W = input.shape
     chunk_size = (size_of_largest_dim // num_bands) + 1
@@ -289,10 +289,10 @@ def _chamfer_3d_chunk_batch(input, max_val, num_bands, causal, anti_causal, size
                 changed[band] = True
 
         if not np.any(changed):
-            break
+            break'''
 
 
-def reorder_offset_list(offset_list, spatial_perm):
+'''def reorder_offset_list(offset_list, spatial_perm):
     new_list = []
     for item in offset_list:
         spatial_offsets = item[:-1]  # all but the last element (weight)
@@ -300,7 +300,7 @@ def reorder_offset_list(offset_list, spatial_perm):
         # Reorder spatial offsets according to spatial_perm
         new_spatial = tuple(spatial_offsets[i] for i in spatial_perm)
         new_list.append((*new_spatial, weight))
-    return new_list
+    return new_list'''
 
 
 def _make_ranges(shape):
@@ -349,8 +349,7 @@ def _run_pass(input, causal, anti_causal, ranges_fwd, ranges_bwd, ndim, batch, m
                  input.shape[0], input.shape[1], input.shape[2], max_val)
 
 
-# ---------- Dispatcher for the chunked iterative version ----------
-def _run_chunked(input, max_val, num_bands, causal, anti_causal, ndim, batch, size_of_largest_dim):
+'''def _run_chunked(input, max_val, num_bands, causal, anti_causal, ndim, batch, size_of_largest_dim):
     """Call the appropriate _chamfer_*_chunk* function."""
     if ndim == 2:
         if batch:
@@ -361,11 +360,11 @@ def _run_chunked(input, max_val, num_bands, causal, anti_causal, ndim, batch, si
         if batch:
             _chamfer_3d_chunk_batch(input, max_val, num_bands, causal, anti_causal, size_of_largest_dim)
         else:
-            _chamfer_3d_chunk(input, max_val, num_bands, causal, anti_causal, size_of_largest_dim)
+            _chamfer_3d_chunk(input, max_val, num_bands, causal, anti_causal, size_of_largest_dim)'''
 
 
 # ---------- Helper: permute for chunking ----------
-def _permute_for_chunk(input, causal, anti_causal, working_dim, chunk_dim, batch):
+'''def _permute_for_chunk(input, causal, anti_causal, working_dim, chunk_dim, batch):
     """
     Transpose the input so that the chunked axis becomes the first spatial axis,
     and reorder the offsets accordingly. Returns (transposed_input, new_causal, new_anti_causal, perm, inv_perm).
@@ -382,12 +381,11 @@ def _permute_for_chunk(input, causal, anti_causal, working_dim, chunk_dim, batch
 
     new_causal = reorder_offset_list(causal, spatial_perm)
     new_anti_causal = reorder_offset_list(anti_causal, spatial_perm)
-    return np.transpose(input, perm), new_causal, new_anti_causal, perm, np.argsort(perm)
+    return np.transpose(input, perm), new_causal, new_anti_causal, perm, np.argsort(perm)'''
 
 
-def _chamfer(input, max_val, num_bands, causal, anti_causal, working_dim,
-             chunk, size_of_largest_dim, chunk_dim, batch):
-    if chunk:
+def _chamfer(input, max_val, causal, anti_causal, working_dim, batch):
+    '''if chunk:
         # Move the chunked axis to the front (after batch if present)
         input, causal, anti_causal, perm, inv_perm = _permute_for_chunk(
             input, causal, anti_causal, working_dim, chunk_dim, batch
@@ -396,10 +394,10 @@ def _chamfer(input, max_val, num_bands, causal, anti_causal, working_dim,
         _run_chunked(input, max_val, num_bands, causal, anti_causal, working_dim, batch, size_of_largest_dim)
         # Restore original axis order
         input = np.transpose(input, inv_perm)
-    else:
-        # No chunking: simply run one forward and one backward pass over all axes
-        shape = input.shape[1:] if batch else input.shape   # spatial shape
-        fwd_ranges, bwd_ranges = _make_ranges(shape)
-        _run_pass(input, causal, anti_causal, fwd_ranges, bwd_ranges, working_dim, batch, max_val)
+    else:'''
+    # No chunking: simply run one forward and one backward pass over all axes
+    shape = input.shape[1:] if batch else input.shape   # spatial shape
+    fwd_ranges, bwd_ranges = _make_ranges(shape)
+    _run_pass(input, causal, anti_causal, fwd_ranges, bwd_ranges, working_dim, batch, max_val)
 
     return input

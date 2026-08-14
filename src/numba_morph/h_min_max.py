@@ -1,6 +1,7 @@
 import warnings
 import numpy as np
 from .reconstruction import reconstruction
+from .utils import safe_add
 
 def compare_greater_equal_safe(a, b, h, block_size=4096):
     """returns True where a >= b + h, avoiding overflow/underflow"""
@@ -88,7 +89,8 @@ def h_maxima(input, h, footprint=None, mode="reflect", cval=0.0):
         resolution = 2 * np.finfo(input.dtype).resolution * np.abs(input)
         h = h + resolution
 
-    rec_img = reconstruction(input, dynamic=-h, method='dilation', footprint=footprint, edge_mode=mode, cval=cval)
+    rec_img = safe_add(input, -h)
+    reconstruction(input, rec_img, inplace=True, method='dilation', footprint=footprint, edge_mode=mode, cval=cval)
     # returns True where a >= b + h, avoiding overflow/underflow
     return compare_greater_equal_safe(input, rec_img, h)
 
@@ -152,5 +154,6 @@ def h_minima(input, h, footprint=None, mode="reflect", cval=0.0):
         resolution = np.finfo(input.dtype).eps * max(input.min(), input.max(), key=abs)
         h = h + resolution
 
-    rec_img = reconstruction(input, dynamic=h, method='erosion', footprint=footprint, edge_mode=mode, cval=cval)
+    rec_img = safe_add(input, h)
+    reconstruction(input, rec_img, inplace=True, method='erosion', footprint=footprint, edge_mode=mode, cval=cval)
     return compare_greater_equal_safe(rec_img, input, h)

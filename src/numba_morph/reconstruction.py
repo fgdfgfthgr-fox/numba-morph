@@ -4,7 +4,7 @@ from .utils import choose_algorithm, safe_add
 from ._scan import _get_offsets, _scan_filter, _scan_raster
 
 
-def reconstruction(mask, seed=None, dynamic=None, method='dilation',
+def reconstruction(mask, seed, inplace=False, method='dilation',
                    footprint=None, edge_mode='reflect', cval=0, speed='auto'):
     """
     Geodesic reconstruction for ndarray.
@@ -15,12 +15,11 @@ def reconstruction(mask, seed=None, dynamic=None, method='dilation',
     Parameters
     ----------
     mask : ndarray
-        The mask image (lower bound).
+        The mask image (lower or upper bound).
     seed : ndarray
-        The marker image. If provided, it is used as the initial result.
-    dynamic : scalar
-        If provided, the initial result is set to ``mask + dynamic``.
-        Only one of `seed` or `dynamic` may be given.
+        The marker image. Used as the initial result.
+    inplace : bool
+        If true, will perform the reconstruction in-place on seed. Otherwise, a new array will be created. Defaults to False.
     method : str, {'erosion', 'dilation'}
         In dilation (or erosion), the seed image is dilated (or eroded) until limited by the mask image.
         For dilation, each seed value must be less than or equal to the corresponding mask value;
@@ -43,8 +42,6 @@ def reconstruction(mask, seed=None, dynamic=None, method='dilation',
     result : ndarray
         Reconstructed input.
     """
-    if (seed is None) == (dynamic is None):
-        raise ValueError("Exactly one of 'seed' or 'dynamic' must be provided.")
     if footprint is None:
         raise ValueError("A footprint must be provided or the function can't determine the working dimension!")
     else:
@@ -53,22 +50,22 @@ def reconstruction(mask, seed=None, dynamic=None, method='dilation',
             raise ValueError(f"'footprint' must have at least 2 and at most 3 dimensions. Currently: {footprint.ndim}.")
     if mask.ndim < working_dim:
         raise ValueError(f"mask must have at least {working_dim} dimensions given the footprint.")
-    if seed is not None:
-        if seed.shape != mask.shape:
-            raise ValueError("seed must have same shape as mask")
-        if np.any(seed < mask) and method == 'erosion':
-            raise ValueError(
-                "Intensity of seed image must be more than that "
-                "of the mask image for reconstruction by erosion."
-            )
-        elif np.any(seed > mask) and method == 'dilation':
-            raise ValueError(
-                "Intensity of seed image must be less than that "
-                "of the mask image for reconstruction by dilation."
-            )
+    if seed.shape != mask.shape:
+        raise ValueError("seed must have same shape as mask")
+    if np.any(seed < mask) and method == 'erosion':
+        raise ValueError(
+            "Intensity of seed image must be more than that "
+            "of the mask image for reconstruction by erosion."
+        )
+    elif np.any(seed > mask) and method == 'dilation':
+        raise ValueError(
+            "Intensity of seed image must be less than that "
+            "of the mask image for reconstruction by dilation."
+        )
+    if inplace:
         result = seed
     else:
-        result = safe_add(mask, dynamic)
+        result = seed.copy()
     edge_mode_codes = {'reflect': 0, 'constant': 1, 'nearest': 2, 'mirror': 3, 'wrap': 4}
     if edge_mode not in edge_mode_codes:
         raise ValueError("mode must be one of 'reflect','constant','nearest','mirror','wrap'")

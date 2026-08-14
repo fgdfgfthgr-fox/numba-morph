@@ -36,8 +36,8 @@ def local_maxima(input, footprint=None, mode="reflect", cval=0.0):
         marker = np.nextafter(input, -np.inf)
     else:
         marker = safe_add(input, -1)
-    rec_img = reconstruction(input, seed=marker, method='dilation', footprint=footprint, edge_mode=mode, cval=cval)
-    return rec_img < input
+    reconstruction(input, marker, inplace=True, method='dilation', footprint=footprint, edge_mode=mode, cval=cval)
+    return marker < input
 
 
 def local_minima(input, footprint=None, mode="reflect", cval=0.0):
@@ -72,5 +72,5 @@ def local_minima(input, footprint=None, mode="reflect", cval=0.0):
         marker = np.nextafter(input, np.inf)
     else:
         marker = safe_add(input, 1)
-    rec_img = reconstruction(input, seed=marker, method='erosion', footprint=footprint, edge_mode=mode, cval=cval)
-    return rec_img > input
+    reconstruction(input, marker, inplace=True, method='erosion', footprint=footprint, edge_mode=mode, cval=cval)
+    return marker > input

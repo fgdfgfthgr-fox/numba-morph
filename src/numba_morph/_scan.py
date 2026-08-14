@@ -703,7 +703,7 @@ def _scan_raster(arr, mask, bound, offsets, edge_mode_code, cval, erosion, worki
 
     # Backward pass (reverse raster order)
     changed_bwd = scan_function(
-        arr, mask, bound, backward_offsets, True,
+        arr, mask, bound, min_val, max_val, backward_offsets, True,
         edge_mode_code, cval, erosion)
 
     changed = changed_fwd or changed_bwd
