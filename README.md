@@ -65,14 +65,15 @@ Erosion (uint16):
 | 4096x4096                 | **0.1200s**                | 0.5038s              | 0.11GB                   | **0.09GB**         |
 | 8x4096x4096 (2D, batched) | **0.7861s**                | 4.1044s              | **0.76GB**               | 0.78GB             |
 
-Reconstruction (int16):
+Reconstruction (uint16):
+Note the numba-morph implementation is much slower! It prioritises memory use over the speed. A faster version will come in the future.
 
-| Array Size                | Time taken for numba-morph | Time taken for scikit-image | Memory use (numba-morph) | Memory use (scikit-image) |
-|---------------------------|----------------------------|-----------------------------|--------------------------|---------------------------|
-| 8x64x64x64 (3D, batched)  | **0.4057s**                | 0.9805s                     | 0.039GB                  | **0.038GB**               |
-| 8x1024x1024 (2D, batched) | **0.4165s**                | 3.3852s                     | **0.075GB**              | 0.143GB                   |
+| Array Size  | Time taken for numba-morph | Time taken for scikit-image | Memory use (numba-morph) | Memory use (scikit-image) |
+|-------------|----------------------------|-----------------------------|--------------------------|---------------------------|
+| 1024x1024   | 7.5393s                    | **0.4498s**                 | **0.022GB**              | 0.092GB                   |
+| 128x128x128 | 9.0819s                    | **1.4334s**                 | **0.041GB**              | 0.192GB                   |
 
-Chamfer Distance Transform (in=uint8, out=int32):
+Chamfer Distance Transform (in=uint8, out=uint16):
 
 Note numba-morph don't have time advantage here. It's optimised for memory use. 
 Another advantage of numba-morph not showing here is able to specify output directly in other dtype. e.g. smaller uint16

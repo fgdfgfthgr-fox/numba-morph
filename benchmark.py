@@ -6,31 +6,31 @@ import numba_morph
 import skimage.morphology as morph
 import scipy.ndimage as ndimage
 
-SHAPE = (4096, 4096)
+SHAPE = (128, 128, 128)
 REPEATS = 2
-OP_My = numba_morph.distance_transform_cdt
-OP_Control = ndimage.distance_transform_cdt
-footprint = ndimage.generate_binary_structure(2, 2)
+OP_My = numba_morph.reconstruction
+OP_Control = morph.reconstruction
+footprint = ndimage.generate_binary_structure(3, 3)
 
 def op_my_run():
-    input = np.random.randint(0, 2, SHAPE, dtype=np.uint16)
+    input = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
     #input_2 = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
     #input_2 = np.minimum(input_2, input)
-    #input_2 = input.copy()
-    #input_2[1:-1, 1:-1] = input.min()
-    result = OP_My(input, weights=(1,1))
+    input_2 = input.copy()
+    input_2[1:-1, 1:-1] = input.min()
+    result = OP_My(input, input_2, footprint=footprint)
     return result
 
 def op_control_run():
-    input = np.random.randint(0, 2, SHAPE, dtype=np.uint16)
+    input = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
     #input_2 = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
     #input_2 = np.minimum(input_2, input)
-    #input_2 = input.copy()
-    #input_2[1:-1, 1:-1] = input.min()
+    input_2 = input.copy()
+    input_2[1:-1, 1:-1] = input.min()
     #result = np.zeros_like(input)
     #for i in range(result.shape[0]):
     #    result[i] = OP_Control(input[i])
-    result = OP_Control(input, indices=(0,1))
+    result = OP_Control(input_2, input, footprint=footprint)
     return result
 
 if __name__ == '__main__':

@@ -17,3 +17,5 @@ Add "inplace" argument to reconstruction, remove "dynamic" argument.
 
 Add a shortcut to the core erosion and dilation algorithms (and therefore all the downstream functions) when the pixels 
 are already at their minimum or maximum value.
+
+Correct my benchmark on reconstruction function's speed using more realistic data.
