@@ -209,7 +209,6 @@ def _scan_2d_filter(arr, out, mask, bound, min_val, max_val, offsets, mode_code,
                 best = max(neighbor, best)
             else:
                 best = min(neighbor, best)
-
         if bound is not None:
             if not erosion:
                 best = min(best, bound[h,w])

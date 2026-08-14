@@ -102,9 +102,7 @@ def reconstruction(mask, seed, inplace=False, method='dilation',
 
     while changed:
         if speed:
-            result_actual = result.copy()
-            changed = _scan_filter(result, result_actual, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
-            result = result_actual
+            changed = _scan_filter(result, result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
         else:
             changed = _scan_raster(result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
 
