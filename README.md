@@ -55,29 +55,22 @@ You can replicate the result using the benchmark.py.
 Note: all the time given does not include the start-up time needed for Numba to compile. 
 This takes from a fraction of a second to a few seconds, depending on the testing ops.
 
-Dilation (int16):
+Erosion (uint16):
 
 | Array Size                | Time taken for numba-morph | Time taken for SciPy | Memory use (numba-morph) | Memory use (SciPy) |
 |---------------------------|----------------------------|----------------------|--------------------------|--------------------|
-| 64x64x64                  | **0.0072s**                | 0.0076s              | 0.022GB                  | **0.001GB**        |
-| 128x128x128               | **0.0461s**                | 0.1335s              | 0.033GB                  | **0.012GB**        |
-| 256x256x256               | **0.3823s**                | 2.0027s              | 0.12GB                   | **0.09GB**         |
-| 512x512x512               | **2.5800s**                | 25.7317s             | 0.77GB                   | **0.75GB**         |
-| 256x256                   | **0.0006s**                | 0.0014s              | 0.02GB                   | **~0.0GB**         |
-| 1024x1024                 | **0.0101s**                | 0.0214s              | 0.026GB                  | **0.006GB**        |
-| 4096x4096                 | **0.1617s**                | 0.5816s              | 0.11GB                   | **0.09GB**         |
-| 8x4096x4096 (2D, batched) | **1.0951s**                | 4.9948s              | 0.77GB                   | **0.75GB**         |
+| 64x64x64                  | **0.0046s**                | 0.0051s              | 0.014GB                  | **0.001GB**        |
+| 256x256x256               | **0.1992s**                | 1.8260s              | 0.11GB                   | **0.09GB**         |
+| 1024x1024                 | **0.0094s**                | 0.0185s              | 0.018GB                  | **0.006GB**        |
+| 4096x4096                 | **0.1200s**                | 0.5038s              | 0.11GB                   | **0.09GB**         |
+| 8x4096x4096 (2D, batched) | **0.7861s**                | 4.1044s              | **0.76GB**               | 0.78GB             |
 
 Reconstruction (int16):
 
 | Array Size                | Time taken for numba-morph | Time taken for scikit-image | Memory use (numba-morph) | Memory use (scikit-image) |
 |---------------------------|----------------------------|-----------------------------|--------------------------|---------------------------|
-| 64x64x64                  | 0.1343s                    | **0.1127s**                 | **0.024GB**              | 0.025GB                   |
-| 128x128x128               | **1.3726s**                | 1.8128s                     | **0.040GB**              | 0.192GB                   |
-| 256x256                   | **0.0046s**                | 0.0103s                     | **0.002GB**              | 0.006GB                   |
-| 1024x1024                 | **0.0897s**                | 0.3546s                     | **0.029GB**              | 0.092GB                   |
-| 8x64x64x128 (3D, batched) | **1.0468s**                | 2.2300s                     | **0.053GB**              | 0.075GB                   |
-| 8x2048x2048 (2D, batched) | **2.0700s**                | 18.5615s                    | **0.271GB**              | 0.571GB                   |
+| 8x64x64x64 (3D, batched)  | **0.4057s**                | 0.9805s                     | 0.039GB                  | **0.038GB**               |
+| 8x1024x1024 (2D, batched) | **0.4165s**                | 3.3852s                     | **0.075GB**              | 0.143GB                   |
 
 Chamfer Distance Transform (in=uint8, out=int32):
 
@@ -86,13 +79,11 @@ Another advantage of numba-morph not showing here is able to specify output dire
 
 | Array Size                  | Time taken for numba-morph | Time taken for scikit-image | Memory use (numba-morph) | Memory use (scikit-image) |
 |-----------------------------|----------------------------|-----------------------------|--------------------------|---------------------------|
-| 64x64x64                    | 0.0123s                    | **0.0059s**                 | 0.017GB                  | **0.004GB**               |
-| 256x256x256                 | 0.4401s                    | **0.3687s**                 | **0.175GB**              | 0.266GB                   |
-| 512x1024x1024               | 10.1897s                   | **5.9755s**                 | **2.519GB**              | 4.250GB                   |
-| 512x512                     | 0.0058s                    | **0.0042s**                 | 0.017GB                  | **0.004GB**               |
-| 4096x4096                   | **0.2333s**                | 0.2606s                     | **0.176GB**              | 0.266GB                   |
-| 8x128x128x256 (3D, batched) | **0.5874s**                | 1.2909s                     | **0.328GB**              | 0.531GB                   |
-| 8x4096x4096 (2D, batched)   | **1.5051s**                | 2.9589s                     | **1.269GB**              | 2.125GB                   |
+| 256x256x256                 | 0.7417s                    | **0.4400s**                 | **0.109GB**              | 0.281GB                   |
+| 512x512x512                 | 5.9335s                    | **3.0149s**                 | **0.762**                | 2.250GB                   |
+| 1024x1024                   | 0.0269s                    | **0.0223**                  | 0.021GB                  | **0.018GB**               |
+| 4096x4096                   | 0.3298s                    | **0.2715s**                 | **0.106GB**              | 0.281GB                   |
+| 8x128x128x128 (3D, batched) | **0.2043s**                | 0.6633s                     | **0.113GB**              | 0.281GB                   |
 
 ## Limitations
 * Does not support float16 inputs, this is due to [an issue with Numba](https://github.com/numba/numba/issues/4402).

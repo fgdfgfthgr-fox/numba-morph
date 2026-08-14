@@ -7,22 +7,30 @@ import skimage.morphology as morph
 import scipy.ndimage as ndimage
 
 SHAPE = (4096, 4096)
-REPEATS = 5
-OP_My = numba_morph.local_minima
-OP_Control = morph.local_minima
+REPEATS = 2
+OP_My = numba_morph.distance_transform_cdt
+OP_Control = ndimage.distance_transform_cdt
 footprint = ndimage.generate_binary_structure(2, 2)
 
 def op_my_run():
-    input = np.random.random(SHAPE)
-    result = OP_My(input, footprint)
+    input = np.random.randint(0, 2, SHAPE, dtype=np.uint16)
+    #input_2 = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
+    #input_2 = np.minimum(input_2, input)
+    #input_2 = input.copy()
+    #input_2[1:-1, 1:-1] = input.min()
+    result = OP_My(input, weights=(1,1))
     return result
 
 def op_control_run():
-    input = np.random.random(SHAPE)
-    result = np.zeros_like(input)
+    input = np.random.randint(0, 2, SHAPE, dtype=np.uint16)
+    #input_2 = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
+    #input_2 = np.minimum(input_2, input)
+    #input_2 = input.copy()
+    #input_2[1:-1, 1:-1] = input.min()
+    #result = np.zeros_like(input)
     #for i in range(result.shape[0]):
-    #    result[i] = OP_Control(input[i], footprint=footprint)
-    result = OP_Control(input, footprint=footprint)
+    #    result[i] = OP_Control(input[i])
+    result = OP_Control(input, indices=(0,1))
     return result
 
 if __name__ == '__main__':
