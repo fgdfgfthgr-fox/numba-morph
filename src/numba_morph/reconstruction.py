@@ -108,7 +108,7 @@ def reconstruction(mask, seed, inplace=False, method='dilation',
         _scan_raster(result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
 
     # Heapq priority queue
-    _propagate(result, mask, offsets, method_code, working_dim, batch)
+    _propagate(result, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
 
     return result.reshape(original_shape) if result.ndim > working_dim else result
 
