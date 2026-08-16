@@ -9,7 +9,7 @@ exclude = ["tests*"]
 
 [project]
 name = "numba-morph"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
   { name="Yuyao Huang", email="yuyaoh6@gmail.com" },
 ]

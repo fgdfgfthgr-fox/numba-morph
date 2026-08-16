@@ -19,3 +19,7 @@ Add a shortcut to the core erosion and dilation algorithms (and therefore all th
 are already at their minimum or maximum value.
 
 Correct my benchmark on reconstruction function's speed using more realistic data.
+
+## v0.2.1
+Reconstruction function now uses the hybrid algorithm mentioned from the paper "Morphological grayscale reconstruction 
+in image analysis: applications and efficient algorithms". Making it much faster to run.

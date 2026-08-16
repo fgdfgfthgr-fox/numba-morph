@@ -2,6 +2,7 @@ import warnings
 import numpy as np
 from .utils import choose_algorithm, safe_add
 from ._scan import _get_offsets, _scan_filter, _scan_raster
+from ._propagation import _propagate
 
 
 def reconstruction(mask, seed, inplace=False, method='dilation',
@@ -100,11 +101,14 @@ def reconstruction(mask, seed, inplace=False, method='dilation',
             result = result.reshape((N, D, H, W))
             mask = mask.reshape((N, D, H, W))
 
-    while changed:
-        if speed:
-            changed = _scan_filter(result, result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
-        else:
-            changed = _scan_raster(result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
+    # First Scan using erosion or dilation
+    if speed:
+        _scan_filter(result, result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
+    else:
+        _scan_raster(result, None, mask, offsets, edge_mode_code, cval, method_code, working_dim, batch)
+
+    # Heapq priority queue
+    _propagate(result, mask, offsets, method_code, working_dim, batch)
 
     return result.reshape(original_shape) if result.ndim > working_dim else result
 
