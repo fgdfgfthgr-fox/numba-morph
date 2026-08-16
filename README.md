@@ -66,12 +66,11 @@ Erosion (uint16):
 | 8x4096x4096 (2D, batched) | **0.7861s**                | 4.1044s              | **0.76GB**               | 0.78GB             |
 
 Reconstruction (uint16):
-Note the numba-morph implementation is much slower! It prioritises memory use over the speed. A faster version will come in the future.
 
 | Array Size  | Time taken for numba-morph | Time taken for scikit-image | Memory use (numba-morph) | Memory use (scikit-image) |
 |-------------|----------------------------|-----------------------------|--------------------------|---------------------------|
-| 1024x1024   | 7.5393s                    | **0.4498s**                 | **0.022GB**              | 0.092GB                   |
-| 128x128x128 | 9.0819s                    | **1.4334s**                 | **0.041GB**              | 0.192GB                   |
+| 1024x1024   | **0.3436s**                | 0.4498s                     | **0.039GB**              | 0.092GB                   |
+| 128x128x128 | **0.9314s**                | 1.4049s                     | **0.052GB**              | 0.192GB                   |
 
 Chamfer Distance Transform (in=uint8, out=uint16):
 

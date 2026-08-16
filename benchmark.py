@@ -6,11 +6,11 @@ import numba_morph
 import skimage.morphology as morph
 import scipy.ndimage as ndimage
 
-SHAPE = (128, 128, 128)
-REPEATS = 2
+SHAPE = (1024, 1024)
+REPEATS = 10
 OP_My = numba_morph.reconstruction
 OP_Control = morph.reconstruction
-footprint = ndimage.generate_binary_structure(3, 3)
+footprint = ndimage.generate_binary_structure(2, 2)
 
 def op_my_run():
     input = np.random.randint(0, 256, SHAPE, dtype=np.uint16)
