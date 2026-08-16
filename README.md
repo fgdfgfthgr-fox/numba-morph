@@ -1,6 +1,7 @@
 # numba-morph
 
 [![Tests](https://github.com/fgdfgfthgr-fox/numba-morph/actions/workflows/python-app.yml/badge.svg)](https://github.com/fgdfgfthgr-fox/numba-morph/actions/workflows/python-app.yml/badge.svg)
+[![PyPI version](https://badge.fury.io/py/numba-morph.svg)](https://badge.fury.io/py/numba-morph)
 
 A set of Numba-optimised morphological operations.
 
