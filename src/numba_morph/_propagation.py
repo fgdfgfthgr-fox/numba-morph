@@ -5,7 +5,6 @@ from ._scan import (_reflect_handle_2d, _reflect_handle_3d,
                    _nearest_handle_2d, _nearest_handle_3d,
                    _mirror_handle_2d, _mirror_handle_3d,
                    _wrap_handle_2d, _wrap_handle_3d)
-
 # TODO: Once Python 3.14 is popular, uses heapify_max instead.
 
 @njit(fastmath=True)
@@ -194,7 +193,7 @@ def _propagate_3d_batched(marker, mask, offsets, mode_code, cval, erosion, dtype
 def _propagate(marker, mask, offsets, mode_code, cval, erosion, working_dim, batch):
     dtype = marker.dtype
     if dtype == np.float16:
-        NotImplementedError("numba-morph doesn't support float16 input! This is a limit of numba.")
+        raise NotImplementedError("numba-morph doesn't support float16 input! This is a limit of numba.")
     if batch:
         propagate_function = _propagate_2d_batched if working_dim == 2 else _propagate_3d_batched
     else:

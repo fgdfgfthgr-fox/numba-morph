@@ -1,8 +1,8 @@
 import warnings
 import numpy as np
-from .utils import choose_algorithm, safe_add
+from .utils import choose_algorithm
 from ._scan import _get_offsets, _scan_filter, _scan_raster
-from ._propagation import _propagate
+from ._tiled_propagation import _propagate
 
 
 def reconstruction(mask, seed, inplace=False, method='dilation',
@@ -80,8 +80,6 @@ def reconstruction(mask, seed, inplace=False, method='dilation',
     offsets = _get_offsets(footprint)
     # Make cval compatible with input dtype
     cval = np.array(cval, dtype=result.dtype).item()
-
-    changed = True
 
     batch = False
     if result.ndim > working_dim:

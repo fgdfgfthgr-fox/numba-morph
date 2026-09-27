@@ -30,7 +30,7 @@ Supports batched operations on both 2D and 3D.
 * reconstruction
 * white_tophat, black_tophat
 * watershed
-* welford_mean_std_w_mask
+* welford_mean_std_w_mask (A much faster alternative to find std for large array)
 
 ## Installation
 You can install `numba-morph` directly from pypi using pip:

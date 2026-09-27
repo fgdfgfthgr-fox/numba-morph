@@ -1,4 +1,4 @@
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 from .cdt import distance_transform_cdt
 from .dilation import dilation
@@ -13,3 +13,5 @@ from .top_hats import white_tophat, black_tophat
 from .utils import generate_sphere_structure
 from .watershed import watershed
 from .welford import welford_mean_std_w_mask
+# Can't do it faster than cython...
+#from .skeletonise import skeletonize

@@ -62,7 +62,7 @@ class TestReconstruction3D:
     @pytest.mark.parametrize("mode", ["erosion", "dilation"])
     @pytest.mark.parametrize("connectivity", [6, 18, 26])
     def test_reconstruction_3d(self, connectivity, mode, speed):
-        original = np.random.randint(low=0, high=255, size=(32, 32, 32), dtype=np.uint8)
+        original = np.random.randint(low=0, high=255, size=(64, 64, 64), dtype=np.uint8)
         seed = np.copy(original)
         if mode == "erosion":
             seed[1:-1, 1:-1] = original.max()
