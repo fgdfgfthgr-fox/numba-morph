@@ -73,11 +73,11 @@ def _compute_dirty_3d_batched(changed, n_tiles_d, n_tiles_h, n_tiles_w):
     return dirty
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _tiled_sweep_2d(src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+def _tiled_sweep_2d(marker, mask, offsets, mode_code, cval, erosion, dtype,
                     tile_h, tile_w, n_tiles_w, n_tiles,
                     dirty_idx, scratch_marker, scratch_mask):
-    H = src.shape[0]
-    W = src.shape[1]
+    H = marker.shape[0]
+    W = marker.shape[1]
     n_dirty = dirty_idx.shape[0]
     changed = np.zeros(n_tiles, dtype=np.bool_)
 
@@ -102,27 +102,27 @@ def _tiled_sweep_2d(src, dst, mask, offsets, mode_code, cval, erosion, dtype,
         local_marker = scratch_marker[tid, :th, :tw]
         local_mask = scratch_mask[tid, :th, :tw]
 
-        local_marker[:, :] = src[hh0:hh1, ww0:ww1]
+        local_marker[:, :] = marker[hh0:hh1, ww0:ww1]
         local_mask[:, :] = mask[hh0:hh1, ww0:ww1]
 
         _propagate_2d(local_marker, local_mask, offsets,
                       mode_code, cval, erosion, dtype)
 
         new_slice = local_marker[h0 - hh0:h1 - hh0, w0 - ww0:w1 - ww0]
-        old_slice = src[h0:h1, w0:w1]
+        old_slice = marker[h0:h1, w0:w1]
         changed[t] = not np.array_equal(new_slice, old_slice)
-        dst[h0:h1, w0:w1] = new_slice
+        marker[h0:h1, w0:w1] = new_slice
 
     return changed
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _tiled_sweep_2d_batched(src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+def _tiled_sweep_2d_batched(marker, mask, offsets, mode_code, cval, erosion, dtype,
                             tile_h, tile_w, n_tiles_w, n_tiles,
                             dirty_b, dirty_t, scratch_marker, scratch_mask):
-    B = src.shape[0]
-    H = src.shape[1]
-    W = src.shape[2]
+    B = marker.shape[0]
+    H = marker.shape[1]
+    W = marker.shape[2]
     n_dirty = dirty_b.shape[0]
     changed = np.zeros((B, n_tiles), dtype=np.bool_)
 
@@ -148,16 +148,16 @@ def _tiled_sweep_2d_batched(src, dst, mask, offsets, mode_code, cval, erosion, d
         local_marker = scratch_marker[tid, :th, :tw]
         local_mask = scratch_mask[tid, :th, :tw]
 
-        local_marker[:, :] = src[b, hh0:hh1, ww0:ww1]
+        local_marker[:, :] = marker[b, hh0:hh1, ww0:ww1]
         local_mask[:, :] = mask[b, hh0:hh1, ww0:ww1]
 
         _propagate_2d(local_marker, local_mask, offsets,
                       mode_code, cval, erosion, dtype)
 
         new_slice = local_marker[h0 - hh0:h1 - hh0, w0 - ww0:w1 - ww0]
-        old_slice = src[b, h0:h1, w0:w1]
+        old_slice = marker[b, h0:h1, w0:w1]
         changed[b, t] = not np.array_equal(new_slice, old_slice)
-        dst[b, h0:h1, w0:w1] = new_slice
+        marker[b, h0:h1, w0:w1] = new_slice
 
     return changed
 
@@ -166,12 +166,12 @@ def _tiled_sweep_2d_batched(src, dst, mask, offsets, mode_code, cval, erosion, d
 # 3D sweeps
 # ----------------------------------------------------------------------
 @njit(parallel=True, fastmath=True, cache=True)
-def _tiled_sweep_3d(src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+def _tiled_sweep_3d(marker, mask, offsets, mode_code, cval, erosion, dtype,
                     tile_d, tile_h, tile_w, n_tiles_h, n_tiles_w, n_tiles,
                     dirty_idx, scratch_marker, scratch_mask):
-    D = src.shape[0]
-    H = src.shape[1]
-    W = src.shape[2]
+    D = marker.shape[0]
+    H = marker.shape[1]
+    W = marker.shape[2]
     n_dirty = dirty_idx.shape[0]
     changed = np.zeros(n_tiles, dtype=np.bool_)
 
@@ -203,28 +203,28 @@ def _tiled_sweep_3d(src, dst, mask, offsets, mode_code, cval, erosion, dtype,
         local_marker = scratch_marker[tid, :td, :th, :tw]
         local_mask = scratch_mask[tid, :td, :th, :tw]
 
-        local_marker[:, :, :] = src[dd0:dd1, hh0:hh1, ww0:ww1]
+        local_marker[:, :, :] = marker[dd0:dd1, hh0:hh1, ww0:ww1]
         local_mask[:, :, :] = mask[dd0:dd1, hh0:hh1, ww0:ww1]
 
         _propagate_3d(local_marker, local_mask, offsets,
                       mode_code, cval, erosion, dtype)
 
         new_slice = local_marker[d0 - dd0:d1 - dd0, h0 - hh0:h1 - hh0, w0 - ww0:w1 - ww0]
-        old_slice = src[d0:d1, h0:h1, w0:w1]
+        old_slice = marker[d0:d1, h0:h1, w0:w1]
         changed[t] = not np.array_equal(new_slice, old_slice)
-        dst[d0:d1, h0:h1, w0:w1] = new_slice
+        marker[d0:d1, h0:h1, w0:w1] = new_slice
 
     return changed
 
 
 @njit(parallel=True, fastmath=True, cache=True)
-def _tiled_sweep_3d_batched(src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+def _tiled_sweep_3d_batched(marker, mask, offsets, mode_code, cval, erosion, dtype,
                             tile_d, tile_h, tile_w, n_tiles_h, n_tiles_w, n_tiles,
                             dirty_b, dirty_t, scratch_marker, scratch_mask):
-    B = src.shape[0]
-    D = src.shape[1]
-    H = src.shape[2]
-    W = src.shape[3]
+    B = marker.shape[0]
+    D = marker.shape[1]
+    H = marker.shape[2]
+    W = marker.shape[3]
     n_dirty = dirty_b.shape[0]
     changed = np.zeros((B, n_tiles), dtype=np.bool_)
 
@@ -257,16 +257,16 @@ def _tiled_sweep_3d_batched(src, dst, mask, offsets, mode_code, cval, erosion, d
         local_marker = scratch_marker[tid, :td, :th, :tw]
         local_mask = scratch_mask[tid, :td, :th, :tw]
 
-        local_marker[:, :, :] = src[b, dd0:dd1, hh0:hh1, ww0:ww1]
+        local_marker[:, :, :] = marker[b, dd0:dd1, hh0:hh1, ww0:ww1]
         local_mask[:, :, :] = mask[b, dd0:dd1, hh0:hh1, ww0:ww1]
 
         _propagate_3d(local_marker, local_mask, offsets,
                       mode_code, cval, erosion, dtype)
 
         new_slice = local_marker[d0 - dd0:d1 - dd0, h0 - hh0:h1 - hh0, w0 - ww0:w1 - ww0]
-        old_slice = src[b, d0:d1, h0:h1, w0:w1]
+        old_slice = marker[b, d0:d1, h0:h1, w0:w1]
         changed[b, t] = not np.array_equal(new_slice, old_slice)
-        dst[b, d0:d1, h0:h1, w0:w1] = new_slice
+        marker[b, d0:d1, h0:h1, w0:w1] = new_slice
 
     return changed
 
@@ -292,26 +292,20 @@ def _queue_2d_tiled(marker, mask, offsets, mode_code, cval, erosion, dtype):
     scratch_marker = np.empty((n_threads, max_th, max_tw), dtype=dtype)
     scratch_mask = np.empty((n_threads, max_th, max_tw), dtype=mask.dtype)
 
-    buf = np.empty_like(marker)
-    src, dst = marker, buf
-
     dirty = np.ones((n_tiles_h, n_tiles_w), dtype=bool)
 
     while True:
-        np.copyto(dst, src)
-        dirty_idx = np.flatnonzero(dirty.ravel()).astype(np.int64)
+        dirty_idx = np.flatnonzero(dirty.ravel())
+        # chaotic and potential race condition but so far my testing suggest it will converge to the right solution
         changed = _tiled_sweep_2d(
-            src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+            marker, mask, offsets, mode_code, cval, erosion, dtype,
             tile_h, tile_w, n_tiles_w, n_tiles,
             dirty_idx, scratch_marker, scratch_mask,
         )
-        src, dst = dst, src
         if not changed.any():
             break
         dirty = _compute_dirty_2d(changed, n_tiles_h, n_tiles_w)
 
-    if src is not marker:
-        np.copyto(marker, src)
 
 
 def _queue_2d_tiled_batched(marker, mask, offsets, mode_code, cval, erosion, dtype):
@@ -332,35 +326,28 @@ def _queue_2d_tiled_batched(marker, mask, offsets, mode_code, cval, erosion, dty
     scratch_marker = np.empty((n_threads, max_th, max_tw), dtype=dtype)
     scratch_mask = np.empty((n_threads, max_th, max_tw), dtype=mask.dtype)
 
-    buf = np.empty_like(marker)
-    src, dst = marker, buf
-
     dirty = np.ones((B, n_tiles_h, n_tiles_w), dtype=bool)
 
     while True:
-        np.copyto(dst, src)
-        flat = np.flatnonzero(dirty.ravel()).astype(np.int64)
+        flat = np.flatnonzero(dirty.ravel())
         dirty_b = flat // n_tiles
         dirty_t = flat % n_tiles
         changed = _tiled_sweep_2d_batched(
-            src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+            marker, mask, offsets, mode_code, cval, erosion, dtype,
             tile_h, tile_w, n_tiles_w, n_tiles,
             dirty_b, dirty_t, scratch_marker, scratch_mask,
         )
-        src, dst = dst, src
         if not changed.any():
             break
         dirty = _compute_dirty_2d_batched(changed, n_tiles_h, n_tiles_w)
 
-    if src is not marker:
-        np.copyto(marker, src)
 
 
 def _queue_3d_tiled(marker, mask, offsets, mode_code, cval, erosion, dtype):
     D, H, W = marker.shape
 
     n_threads = max(get_num_threads(), 1)
-    target_tiles = 2 * n_threads
+    target_tiles = 4 * n_threads
     tile_size = int((D * H * W / max(target_tiles, 1)) ** (1.0 / 3.0))
 
     tile_d = min(tile_size, D)
@@ -377,26 +364,19 @@ def _queue_3d_tiled(marker, mask, offsets, mode_code, cval, erosion, dtype):
     scratch_marker = np.empty((n_threads, max_td, max_th, max_tw), dtype=dtype)
     scratch_mask = np.empty((n_threads, max_td, max_th, max_tw), dtype=mask.dtype)
 
-    buf = np.empty_like(marker)
-    src, dst = marker, buf
 
     dirty = np.ones((n_tiles_d, n_tiles_h, n_tiles_w), dtype=bool)
-
     while True:
-        np.copyto(dst, src)
         dirty_idx = np.flatnonzero(dirty.ravel())
         changed = _tiled_sweep_3d(
-            src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+            marker, mask, offsets, mode_code, cval, erosion, dtype,
             tile_d, tile_h, tile_w, n_tiles_h, n_tiles_w, n_tiles,
             dirty_idx, scratch_marker, scratch_mask,
         )
-        src, dst = dst, src
         if not changed.any():
             break
         dirty = _compute_dirty_3d(changed, n_tiles_d, n_tiles_h, n_tiles_w)
 
-    if src is not marker:
-        np.copyto(marker, src)
 
 
 def _queue_3d_tiled_batched(marker, mask, offsets, mode_code, cval, erosion, dtype):
@@ -420,28 +400,22 @@ def _queue_3d_tiled_batched(marker, mask, offsets, mode_code, cval, erosion, dty
     scratch_marker = np.empty((n_threads, max_td, max_th, max_tw), dtype=dtype)
     scratch_mask = np.empty((n_threads, max_td, max_th, max_tw), dtype=mask.dtype)
 
-    buf = np.empty_like(marker)
-    src, dst = marker, buf
 
     dirty = np.ones((B, n_tiles_d, n_tiles_h, n_tiles_w), dtype=bool)
 
     while True:
-        np.copyto(dst, src)
         flat = np.flatnonzero(dirty.ravel())
         dirty_b = flat // n_tiles
         dirty_t = flat % n_tiles
         changed = _tiled_sweep_3d_batched(
-            src, dst, mask, offsets, mode_code, cval, erosion, dtype,
+            marker, mask, offsets, mode_code, cval, erosion, dtype,
             tile_d, tile_h, tile_w, n_tiles_h, n_tiles_w, n_tiles,
             dirty_b, dirty_t, scratch_marker, scratch_mask,
         )
-        src, dst = dst, src
         if not changed.any():
             break
         dirty = _compute_dirty_3d_batched(changed, n_tiles_d, n_tiles_h, n_tiles_w)
 
-    if src is not marker:
-        np.copyto(marker, src)
 
 
 def _propagate(marker, mask, offsets, mode_code, cval, erosion,
