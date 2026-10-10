@@ -90,13 +90,32 @@ def erosion(input, size=None, footprint=None, structure=None, iterations=1, mask
 
     i = 0
     changed = True
+    src = input
+    dst = output
+    scratch = None
     while changed:
-        changed = _scan_filter(input, output, mask, None, offsets, edge_mode_code, cval, erosion, working_dim, batch)
+        changed = _scan_filter(src, dst, mask, None, offsets, edge_mode_code, cval,
+                               erosion, working_dim, batch)
         i += 1
-        if i >= iterations & iterations > 0:
+        if iterations > 0 and i >= iterations:
             break
-        if ~changed and i < iterations:
+        if not changed:
             print(f'Erosion ending prematurely: image no longer changed after {i} iterations.')
             break
-    return output.reshape(original_shape) if output.ndim > working_dim else output
+        # Prepare for the next iteration: previous output becomes new input.
+        # Cannot write back into `input` (owned by the caller), so once the
+        # first iteration has written into `output` we need a scratch buffer
+        # to alternate between.
+        if dst is output:
+            if scratch is None:
+                scratch = np.empty_like(output)
+            src, dst = output, scratch
+        else:
+            src, dst = scratch, output
 
+    # Make sure the final result lands in `output` regardless of which buffer
+    # the last iteration wrote into.
+    if dst is not output:
+        np.copyto(output, dst)
+
+    return output.reshape(original_shape) if output.ndim > working_dim else output
